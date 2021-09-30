@@ -1,5 +1,5 @@
 ##################################################################################
-#                  INSTALAÇÃO E CARREGAMENTO DE PACOTES NECESSÁRIOS             #
+#                         INSTALL AND LOAD PACKAGES                              #
 ##################################################################################
 #Pacotes utilizados
 pacotes <- c("plotly","tidyverse","knitr","kableExtra","fastDummies","rgl","car",
@@ -15,11 +15,20 @@ if(sum(as.numeric(!pacotes %in% installed.packages())) != 0){
   sapply(pacotes, require, character = T) 
 }
 
+##############################################################################
+#                             CROP RECOMENDATION                             #
+##############################################################################
+
 crop_data <- read_csv("Crop_recommendation.csv")
 
 glimpse(crop_data)
 
+crop_data$culture <- as.factor(crop_data$culture)
+
+crop_data %>% 
+  kable() %>%
+  kable_styling(bootstrap_options = "striped",
+                full_width = F,
+                font_size = 14)
+
 summary(crop_data)
-
-crop_data$label <- as.factor(crop_data$label)
-
