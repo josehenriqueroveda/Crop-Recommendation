@@ -1,5 +1,5 @@
 ##################################################################################
-#                         INSTALL AND LOAD PACKAGES                              #
+#                            INSTALAÇÃO DOS PACOTES                              #
 ##################################################################################
 #Pacotes utilizados
 pacotes <- c("plotly","tidyverse","knitr","kableExtra","fastDummies","rgl","car",
@@ -33,9 +33,9 @@ crop_data %>%
 summary(crop_data)
 
 ##############################################################################
-#                             DATA VISUALIZATION                             #
+#                           ANÁLISE EXPLORATÓRIA                             #
 ##############################################################################
-# Features Histogram
+# Histograma dos atributos
 ggplot(gather(crop_data[1:7]), aes(value, fill=key)) + 
   geom_histogram(bins = 10) + 
   facet_wrap(~key, scales = 'free_x')
@@ -43,7 +43,7 @@ ggplot(gather(crop_data[1:7]), aes(value, fill=key)) +
 crop_data <- crop_data %>%
   mutate(culture = factor(culture))
 
-# By Culture
+# Por cultura
 crop_data %>% 
   pivot_longer(N:rainfall, names_to = "Feature", values_to = "value") %>% 
   ggplot(aes(x = value, fill = culture)) +
@@ -72,6 +72,9 @@ crop_data %>%
   facet_wrap(~Feature, scales = "free_x", ncol = 4) +
   theme(legend.position = "top")
 
-# Understand the correlation between the features
-ggpairs(crop_data, columns = 1:7 ,title = "Correlation between features") 
+# Entendendo a correlação entre os atributos
+ggpairs(crop_data, columns = 1:7 ,title = "Correlação entre os atributos") 
 
+crop_data %>%
+  ggpairs(columns = 1:7, ggplot2::aes(colour=culture), 
+          title = "Correlação entre os atributos por cultura") 
