@@ -142,3 +142,5 @@ confusionMatrix(predictions, validation$culture)
 # Foi um pequeno conjunto de dados de validação (20%)
 # Mas este resultado está dentro da nossa margem esperada de 97% +/- 4%, 
 # sugerindo que podemos ter um modelo preciso e confiável.
+
+# Jose Henrique Roveda
