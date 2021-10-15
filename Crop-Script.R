@@ -24,6 +24,9 @@ crop_data <- read_csv("Crop_recommendation.csv")
 
 glimpse(crop_data)
 
+crop_data <- crop_data %>%
+  mutate(culture = factor(culture))
+
 crop_data %>% 
   kable() %>%
   kable_styling(bootstrap_options = "striped",
@@ -35,13 +38,23 @@ summary(crop_data)
 ##############################################################################
 #                           ANÁLISE EXPLORATÓRIA                             #
 ##############################################################################
+
+# PLOTAGENS PARA CADA VARIÁVEL
+# Separando "input" e "output"
+x <- crop_data[,1:7]
+y <- crop_data[,8]
+
+# Box-Plot para cada atributo
+par(mfrow=c(1,7), mar=c(2,2,2,2))
+  for (i in 1:7) {
+    boxplot(x[,i], main=names(crop_data)[i])
+  }
+
+# PLOTAGENS PARA O CONJUNTO
 # Histograma dos atributos
 ggplot(gather(crop_data[1:7]), aes(value, fill=key)) + 
   geom_histogram(bins = 10) + 
   facet_wrap(~key, scales = 'free_x')
-
-crop_data <- crop_data %>%
-  mutate(culture = factor(culture))
 
 # Por cultura
 crop_data %>% 
@@ -78,3 +91,54 @@ ggpairs(crop_data, columns = 1:7 ,title = "Correlação entre os atributos")
 crop_data %>%
   ggpairs(columns = 1:7, ggplot2::aes(colour=culture), 
           title = "Correlação entre os atributos por cultura") 
+
+# ===================== VALIDAÇÃO DE ALGUNS ALGORÍTIMOS =====================#
+# Criação de uma lista com 80% das observações do dataset original para treino
+validation_index <- createDataPartition(crop_data$culture, p=0.80, list=FALSE)
+# Selectionando 20% dos dados para validação
+validation <- crop_data[-validation_index,]
+# Os 80% restantes serão usados para treinar e testar os modelos
+crop_data2 <- crop_data[validation_index,]
+# Test Harness
+# Validação cruzada para estimar a acurácia
+control <- trainControl(method="cv", number=10)
+metric <- "Accuracy"
+
+# ==== Testes em 4 algoritmos diferentes:
+# Linear Discriminant Analysis (LDA).
+# Classification and Regression Trees (CART).
+# k-Nearest Neighbors (kNN).
+# Support Vector Machines (SVM) with a linear kernel.
+
+# a) Algorítmos lineares
+set.seed(7)
+fit.lda <- train(culture~., data=crop_data2, method="lda", metric=metric, trControl=control)
+# b) nonlinear algorithms
+# CART
+set.seed(7)
+fit.cart <- train(culture~., data=crop_data2, method="rpart", metric=metric, trControl=control)
+# kNN
+set.seed(7)
+fit.knn <- train(culture~., data=crop_data2, method="knn", metric=metric, trControl=control)
+# c) advanced algorithms
+# SVM
+set.seed(7)
+fit.svm <- train(culture~., data=crop_data2, method="svmRadial", metric=metric, trControl=control)
+
+# ================= COMPARANDO E ESCOLHENDO O MELHOR MODELO =================#
+results <- resamples(list(lda=fit.lda, cart=fit.cart, knn=fit.knn, svm=fit.svm))
+summary(results)
+
+dotplot(results)
+
+# SVM se mostrou o com melhor acurácia
+print(fit.svm)
+
+# ============================ FAZENDO PREDIÇÕES ============================#
+predictions <- predict(fit.svm, validation)
+confusionMatrix(predictions, validation$culture)
+
+# Podemos ver que a precisão é de 100%. 
+# Foi um pequeno conjunto de dados de validação (20%)
+# Mas este resultado está dentro da nossa margem esperada de 97% +/- 4%, 
+# sugerindo que podemos ter um modelo preciso e confiável.
